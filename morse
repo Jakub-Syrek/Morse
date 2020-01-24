@@ -1,0 +1,389 @@
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Text;
+
+namespace Morse_code_crypter
+{
+    public struct TestCase
+    {
+        [JsonProperty("Item1")]
+        public string Encrypted { get; set; }
+
+        [JsonProperty("Item2")]
+        public string Decrypted { get; set; }
+    }
+    public static class Helper
+    {
+        public static List<TestCase> GetCasesDeserialized(string filePath)
+        {
+            List<TestCase> container = new List<TestCase>();
+            string line;
+            System.IO.StreamReader file = new System.IO.StreamReader(filePath);
+            while ((line = file.ReadLine()) != null)
+            {
+                var obj = JsonConvert.DeserializeObject<TestCase>(line);
+                container.Add(obj);
+            }
+            file.Close();
+            return container;
+        }
+    }
+    class Program
+    {
+        const string spaceBetweenWords = "000000";
+        const string spaceBetweenChars = "00";
+        const string path = @"c:\tmp\test.txt";
+
+        public static Dictionary<char, String> Morse = new Dictionary<char, String>()
+        {
+            {'A' , "01"},
+            {'B' , "1000"},
+            {'C' , "1010"},
+            {'D' , "100"},
+            {'E' , "0"},
+            {'F' , "0010"},
+            {'G' , "110"},
+            {'H' , "0000"},
+            {'I' , "00"},
+            {'J' , "0111"},
+            {'K' , "101"},
+            {'L' , "0100"},
+            {'M' , "11"},
+            {'N' , "10"},
+            {'O' , "111"},
+            {'P' , "0110"},
+            {'Q' , "1101"},
+            {'R' , "010"},
+            {'S' , "000"},
+            {'T' , "1"},
+            {'U' , "001"},
+            {'V' , "0001"},
+            {'W' , "011"},
+            {'X' , "1001"},
+            {'Y' , "1011"},
+            {'Z' , "1100"},
+            {'0' , "11111"},
+            {'1' , "01111"},
+            {'2' , "00111"},
+            {'3' , "00011"},
+            {'4' , "00001"},
+            {'5' , "00000"},
+            {'6' , "10000"},
+            {'7' , "11000"},
+            {'8' , "11100"},
+            {'9' , "11110"},
+        };
+        public static bool ValidateAsFrase(string input) => input.Contains(spaceBetweenWords);
+        public static string SampleBit(string input, int ratio) => string.Join("", Enumerable.Range(0, input.Length / ratio).Select(i => input.Substring(i * ratio, ratio)[0]));
+        public static string[] SplitByWords(string input) => input.Split(spaceBetweenWords).ToArray();
+        public static string[] SplitByChars(string input) => input.Split(spaceBetweenChars).Append(" ").ToArray();
+        public static char GetCharMorsedDict(string input) => Morse.ContainsValue(input) ? Morse.Where(item => item.Value.Equals(input)).Select(item => item.Key).FirstOrDefault() : ' ';
+        
+        public static string GetCharMorsedSwitch(string input)
+        {
+            StringBuilder localTmp = new StringBuilder(input);
+
+            if (String.IsNullOrWhiteSpace(input))
+                return " ";
+
+            switch (localTmp[0])
+            {
+                case '0':
+                    if (localTmp.Length > 1)
+                    {
+                        switch (localTmp[1])
+                        {
+                            case '0':
+                                if (localTmp.Length > 2)
+                                {
+                                    switch (localTmp[2])
+                                    {
+                                        case '0':
+                                            if (localTmp.Length > 3)
+                                            {
+                                                switch (localTmp[3])
+                                                {
+                                                    case '0':
+                                                        return "H";
+                                                    case '1':
+                                                        return "V";
+                                                    default:
+                                                        return " ";
+                                                }
+                                            }
+                                            else
+                                                return "S";
+                                        case '1':
+                                            if (localTmp.Length > 3)
+                                            {
+                                                switch (localTmp[3])
+                                                {
+                                                    case '0':
+                                                        return "F";
+                                                    default:
+                                                        return " ";
+                                                }
+                                            }
+                                            else
+                                                return "U";
+                                        default:
+                                            return " ";
+
+                                    }
+                                }
+                                else
+                                {
+                                    return "I";
+                                }
+                            case '1':
+                                if (localTmp.Length > 2)
+                                {
+                                    switch (localTmp[2])
+                                    {
+                                        case '0':
+                                            if (localTmp.Length > 3)
+                                            {
+                                                switch (localTmp[3])
+                                                {
+                                                    case '0':
+                                                        return "L";
+                                                    default:
+                                                        return " ";
+                                                }
+                                            }
+                                            else
+                                                return "R";
+
+                                        case '1':
+                                            if (localTmp.Length > 3)
+                                            {
+                                                switch (localTmp[3])
+                                                {
+                                                    case '0':
+                                                        return "P";
+                                                    case '1':
+                                                        return "J";
+                                                    default:
+                                                        return " ";
+                                                }
+                                            }
+                                            else
+                                                return "W";
+                                        default:
+                                            return " ";
+
+                                    }
+
+                                }
+                                else
+                                    return "A";
+                            default:
+                                return " ";
+                        }
+                    }
+                    else
+                        return "E";
+
+                case '1':
+                    if (localTmp.Length > 1)
+                    {
+                        switch (localTmp[1])
+                        {
+                            case '0':
+                                if (localTmp.Length > 2)
+                                {
+                                    switch (localTmp[2])
+                                    {
+                                        case '0':
+                                            if (localTmp.Length > 3)
+                                            {
+                                                switch (localTmp[3])
+                                                {
+                                                    case '0':
+                                                        return "B";
+                                                    case '1':
+                                                        return "X";
+                                                    default:
+                                                        return " ";
+                                                }
+                                            }
+                                            else
+                                                return "D";
+                                        case '1':
+                                            if (localTmp.Length > 3)
+                                            {
+                                                switch (localTmp[3])
+                                                {
+                                                    case '0':
+                                                        return "C";
+                                                    case '1':
+                                                        return "Y";
+                                                    default:
+                                                        return " ";
+                                                }
+                                            }
+                                            else
+                                                return "K";
+                                        default:
+                                            return " ";
+                                    }
+                                }
+                                else
+                                {
+                                    return "N";
+                                }
+                            case '1':
+                                if (localTmp.Length > 2)
+                                {
+                                    switch ((int)localTmp[2])
+                                    {
+                                        case '0':
+                                            if (localTmp.Length > 3)
+                                            {
+                                                switch ((int)localTmp[3])
+                                                {
+                                                    case '0':
+                                                        return "Z";
+                                                    case '1':
+                                                        return "Q";
+                                                    default:
+                                                        return " ";
+                                                }
+                                            }
+                                            else
+                                                return "G";
+
+                                        case '1':
+                                            return "O";
+                                        default:
+                                            return " ";
+
+                                    }
+
+                                }
+                                else
+                                    return "M";
+                            default:
+                                return " ";
+                        }
+                    }
+                    else
+                        return "T";
+                default:
+                    return " ";
+            }
+        }
+        public static string GetBit(string input)
+        {
+            string tmp = $"{input}0";
+            StringBuilder stringBuilder = new StringBuilder();
+            for (int i = 0; i < tmp.Length - 1; i++)
+            {
+                if (tmp[i] == '1' && tmp[i + 1] == '0')
+                {
+                    stringBuilder.Append("0");
+                    ++i;
+                }
+                if (tmp[i] == '1' && tmp[i + 1] == '1')
+                {
+                    stringBuilder.Append("1");
+                    i = i + 3;
+                }
+
+                if (i < tmp.Length - 1)
+                {
+                    if (tmp[i] == '0')
+                    {
+                        if (tmp[i + 1] == '0')
+                        {
+                            stringBuilder.Append("-");
+                            i = (i < tmp.Length - 1) ? i += 1 : i;
+                        }
+                    }
+
+                }
+            }
+            var res = stringBuilder.ToString();
+            return res;
+        }
+        public static int GetSamplingRate(string input)
+        {
+            int shortestLengthReccurent = 1;
+            int longestLengthReccurent = 0;
+            List<int> ListReccurences = new List<int>();
+            int currentLength = 1;
+
+            for (int i = 0; i < input.Length - 1; i++)
+            {
+                if (input[i] == input[i + 1])
+                {
+                    currentLength++;
+                    if (i == input.Length - 2)
+                        ListReccurences.Add(currentLength);  
+                }
+                else
+                {
+                    ListReccurences.Add(currentLength);
+                    currentLength = 1;
+                }
+            }
+            if (ListReccurences.Any())
+            {
+                shortestLengthReccurent = ListReccurences.Min();
+                longestLengthReccurent = ListReccurences.Max();                
+            }
+            if (longestLengthReccurent != 0)  
+            {
+                return shortestLengthReccurent;
+            }
+            return 0;
+        }
+        public static string ReturnDecodedSwitch(string input)
+        {
+            StringBuilder result = new StringBuilder();
+            string[] wordsEncrypted;
+            if (input[0] == '0' || input.Last() == '0')
+                input = input.Trim('0');
+
+            int samplingRate = GetSamplingRate(input); 
+            input = (samplingRate != 0) ? SampleBit(input, samplingRate) : input;
+            wordsEncrypted = ValidateAsFrase(input) ? SplitByWords(input) : new string[] { input };
+            wordsEncrypted.ToList().ForEach(x => SplitByChars(x).ToList().ForEach(y => result.Append(GetCharMorsedSwitch(GetBit(y)))));
+            return result.ToString();
+        }
+        public static string ReturnDecodedDictionary(string input)
+        {
+            StringBuilder result = new StringBuilder();
+            string[] wordsEncrypted;
+            if (input[0] == '0' || input.Last() == '0')
+                input = input.Trim('0');
+
+            int samplingRate = GetSamplingRate(input);
+            input = (samplingRate != 0) ? SampleBit(input, samplingRate) : input;
+            wordsEncrypted = ValidateAsFrase(input) ? SplitByWords(input) : new string[] { input };
+            wordsEncrypted.ToList().ForEach(x => SplitByChars(x).ToList().ForEach(y => result.Append(GetCharMorsedDict(GetBit(y)))));
+            return result.ToString();
+        }
+        static void Main(string[] args)
+        {
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+            foreach (var testCase in Helper.GetCasesDeserialized(path))
+            {
+                Console.WriteLine($"{Environment.NewLine}result Switch={ReturnDecodedSwitch(testCase.Encrypted).ToString()} " +
+                                  $"expected={testCase.Decrypted} time={stopwatch.Elapsed}");
+                stopwatch.Restart();
+                Console.WriteLine($"{Environment.NewLine}result Dictionary={ReturnDecodedDictionary(testCase.Encrypted).ToString()} " +
+                                  $"expected={testCase.Decrypted} time={stopwatch.Elapsed}");
+                stopwatch.Restart();
+            }
+            
+            Console.ReadLine();
+        }
+
+    }
+}
