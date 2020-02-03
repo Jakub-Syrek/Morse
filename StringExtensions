@@ -1,0 +1,255 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+
+namespace Morse_code_crypter
+{
+    internal static class StringExtensions
+    {
+        const string spaceBetweenWords = "000000";
+        const string spaceBetweenChars = "000";
+        [DisplayName("Solution 3")]
+        public static string DecodeStringStream(this string input)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+
+            #region Sampling
+            if (input[0] == '0' || input.Last() == '0')
+                input = input.Trim('0');
+            int samplingRate = input.GetSamplingRate();
+            input = (samplingRate > 0) ? input.SampleBit(samplingRate) : input;
+            #endregion
+
+            #region Decrypt
+            var words = input.SplitByWords();
+            for (int i = 0; i < words.Length; i++)
+            {
+                var chars = words[i].SplitByChars();
+                for (int j = 0; j < chars.Length; j++)
+                    stringBuilder.Append(chars[j].GetBinaryFromMorse().ConvertMorseToChar());
+
+                stringBuilder.Append(' ');
+            }
+            #endregion
+
+            return stringBuilder.ToString().Trim(' ');
+        }
+        [DisplayName("Solution 4")]
+        public static string DecodeStringStreamMysplit(this string input)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+
+            #region Sampling
+            if (input[0] == '0' || input.Last() == '0')
+                input = input.Trim('0');
+            int samplingRate = input.GetSamplingRate();
+            input = (samplingRate > 0) ? input.SampleBit(samplingRate) : input;
+            #endregion
+
+            #region Decrypt
+            var words = input.SplitsByWords();
+            for (int i = 0; i < words.Length; i++)
+            {
+                var chars = words[i].SplitsByChars();
+                for (int j = 0; j < chars.Length; j++)
+                    stringBuilder.Append(chars[j].GetBinaryFromMorse().ConvertMorseToChar());
+
+                stringBuilder.Append(' ');
+            }
+            #endregion
+
+            return stringBuilder.ToString().Trim(' ');
+        }
+        public static bool ValidateAsFrase(this string input) => MemoryExtensions.Contains(input, spaceBetweenWords, StringComparison.Ordinal);
+        public static bool ValidateAsWord(this string input) => MemoryExtensions.Contains(input, spaceBetweenChars, StringComparison.Ordinal);        
+        private static char ConvertMorseToChar(this string s)
+        {
+            char output = s switch
+            {
+                 "000000" => ' ',
+                        _ => s switch
+                {
+                      "0" => 'E',
+                      "1" => 'T',
+                     "01" => 'A',
+                     "11" => 'M',
+                     "00" => 'I',
+                     "10" => 'N',
+                    "001" => 'U',
+                    "100" => 'D',
+                   "1000" => 'B',
+                    "110" => 'G',
+                    "101" => 'K',
+                    "111" => 'O',
+                    "010" => 'R',
+                    "000" => 'S',
+                    "011" => 'W',
+                   "1010" => 'C',
+                   "0010" => 'F',
+                   "0000" => 'H',
+                   "0111" => 'J',
+                   "0100" => 'L',
+                   "0110" => 'P',
+                   "1101" => 'Q',
+                   "0001" => 'V',
+                   "1001" => 'X',
+                   "1011" => 'Y',
+                   "1100" => 'Z',
+                        _ => ' ',
+                }
+            };
+            return output;
+        }
+        public static int GetSamplingRate(this string input)
+        {
+            int shortestLengthReccurent = 1;
+            int longestLengthReccurent = 0;
+            List<int> ListReccurences = new List<int>();
+            int currentLength = 1;
+
+            for (int i = 0; i < input.Length - 1; i++)
+            {
+                if (input[i] == input[i + 1])
+                {
+                    currentLength++;
+                    if (i == input.Length - 2)
+                        ListReccurences.Add(currentLength);
+                }
+                else
+                {
+                    ListReccurences.Add(currentLength);
+                    currentLength = 1;
+                }
+            }
+            if (ListReccurences.Any())
+            {
+                shortestLengthReccurent = ListReccurences.Min();
+                longestLengthReccurent = ListReccurences.Max();
+            }
+            if (longestLengthReccurent != 0)
+            {
+                return shortestLengthReccurent;
+            }
+            return 0;
+        }
+        public static string GetBinaryFromMorse(this string input)
+        {
+            string tmp = $"{input}0";
+            StringBuilder stringBuilder = new StringBuilder();
+            for (int i = 0; i < tmp.Length - 1; i++)
+            {
+                stringBuilder = (tmp[i], tmp[i + 1]) switch
+                {
+                    ('1', '0') => stringBuilder.Append("0"),
+                    ('1', '1') => stringBuilder.Append("1"),
+                    (_, _) => stringBuilder.Append(""),
+                };
+
+                i = (tmp[i], tmp[i + 1]) switch
+                {
+                    ('1', '0') => ++i,
+                    ('1', '1') => i += 3,
+                    (_, _) => i,
+                };
+            }
+            var res = stringBuilder.ToString();
+            return res ?? "";
+        }
+        private static string SampleBit(this string input, int ratio)
+        {
+            StringBuilder stringBuilder = new StringBuilder();            
+            for (int i = 0; i < input.Length; i += ratio)
+            {
+                stringBuilder.Append(input[i]);
+            }
+            return stringBuilder.ToString();
+        }
+        private static string[] SplitByWords(this string input) => input.Split(spaceBetweenWords);
+        private static string[] SplitByChars(this string input) => input.Split(spaceBetweenChars);
+        private static string[] SplitsByWords(this string input) => input.Splits(spaceBetweenWords);
+        private static string[] SplitsByChars(this string input) => input.Splits(spaceBetweenChars);
+
+        public static string[] Splits(this string input, string delimiter) => Regex.Split(input, delimiter);
+      
+
+        [DisplayName("Solution 1")]
+        [Obsolete]
+        public static string DecodeString(this string input)
+        {
+            if (input[0] == '0' || input.Last() == '0')
+                input = input.Trim('0');
+            int samplingRate = input.GetSamplingRate();
+            input = (samplingRate > 1) ? input.SampleBit(samplingRate) : input;
+
+            StringBuilder stringBuilder = new StringBuilder();
+
+            if (input.ValidateAsFrase())
+            {
+                var words = input.SplitByWords();
+                for (int i = 0; i < words.Length; i++)
+                {
+                    var chars = words[i].SplitByChars();
+                    for (int j = 0; j < chars.Length; j++)                    
+                        stringBuilder.Append(chars[j].GetBinaryFromMorse().ConvertMorseToChar());
+                    stringBuilder.Append(' ');
+                }
+                return stringBuilder.ToString().Trim(' ');
+            }
+            else if (input.ValidateAsWord())
+            {
+                var chars = input.SplitByChars();
+                for (int j = 0; j < chars.Length; j++)
+                    stringBuilder.Append(chars[j].GetBinaryFromMorse().ConvertMorseToChar());
+                return stringBuilder.ToString();
+            }
+            else
+            {
+                stringBuilder.Append(input.GetBinaryFromMorse().ConvertMorseToChar());
+                return stringBuilder.ToString();
+            }
+            
+        }
+        [DisplayName("Solution 2")]
+        [Obsolete]
+        public static string ReturnDecodedSwitchNewString(this string input)
+        {
+            int samplingRate = input.GetSamplingRate();
+
+            if (input.First() == '0' || input.Last() == '0')
+                input = input.Trim('0');
+            
+            input = (samplingRate != 0) ? input.SampleBit(samplingRate) : input;
+            
+            string Words(string s)
+            {
+                StringBuilder stringBuilder = new StringBuilder();
+                string[] wordsSpan = SplitByWords(input);
+                for (int i = 0; i < wordsSpan.Length; i++)
+                {
+                    Span<string> res = wordsSpan[i].SplitByChars();
+                    for (int j = 0; j < res.Length; j++)                    
+                        stringBuilder.Append(res[j].GetBinaryFromMorse().ConvertMorseToChar());
+                    stringBuilder.Append(' ');
+                }
+                return stringBuilder.ToString();
+            }
+
+            string Chars(string s)
+            {
+                StringBuilder stringBuilder = new StringBuilder();
+                Span<string> charSpan = input.SplitByChars();
+                for (int j = 0; j < charSpan.Length; j++)
+                {
+                    stringBuilder.Append(charSpan[j].GetBinaryFromMorse().ConvertMorseToChar());
+                }
+                return stringBuilder.ToString();
+            }
+
+            return input.ValidateAsFrase() ? Words(input) : Chars(input);
+        }
+        
+    }
+}
